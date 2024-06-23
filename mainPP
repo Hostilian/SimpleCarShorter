@@ -1,0 +1,69 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml.Serialization;
+using System.Xml.Linq;
+
+public class Car
+{
+    public string Owner { get; set; }
+    public string Model { get; set; }
+    public string Manufacturer { get; set; }
+    public int Year { get; set; }
+    public string Color { get; set; }
+}
+
+public class CarDatabase
+{
+    public List<Car> Cars { get; set;}
+
+    public CarDatabase()
+    {
+        Cars = new List<Car>();
+    }
+
+    public void SaveToFile(string filePath)
+    {
+        var doc = new XDocument();
+        using (var writer = doc.CreateWriter())
+        {
+            var serializer = new XmlSerializer(typeof(CarDatabase));
+            serializer.Serialize(writer, this);
+        }
+        doc.Save(filePath);
+    }
+
+    public static CarDatabase LoadFromFile(string filePath)
+    {
+        var serializer = new XmlSerializer(typeof(CarDatabase));
+        using (var fs = new FileStream(filePath, FileMode.Open))
+        {
+            return (CarDatabase)serializer.Deserialize(fs);
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        string filePath = @"C:\Users\Hostilian\Downloads\all-vehicles-model(2).xlsx";
+        CarDatabase carDatabase;
+
+        if (File.Exists(filePath))
+        {
+            carDatabase = CarDatabase.LoadFromFile(filePath);
+        }
+        else
+        {
+            carDatabase = new CarDatabase();
+        }
+
+        // Implement the menu and user interactions here
+        // You can add options to display data, search, filter, calculate statistics, add/delete cars, etc.
+
+        // After any changes, save the database back to the file
+        carDatabase.SaveToFile(filePath);
+    }
+}
