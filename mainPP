@@ -48,7 +48,7 @@ class Program
 {
     static void Main()
     {
-        string filePath = @"C:\Users\Hostilian\Downloads\all-vehicles-model(2).xlsx";
+        string filePath = @"C:\Users\Hostilian\OneDrive\Documents\GitHub\SimpleCarShorter\data xlsx";
         CarDatabase carDatabase;
 
         if (File.Exists(filePath))
