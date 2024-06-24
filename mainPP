@@ -2,44 +2,141 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml.Serialization;
-using System.Xml.Linq;
 
-public class Car
+class Car
 {
     public string Owner { get; set; }
     public string Model { get; set; }
     public string Manufacturer { get; set; }
     public int Year { get; set; }
     public string Color { get; set; }
+
+    public override string ToString()
+    {
+        return $"{Owner}; {Model}; {Manufacturer}; {Year}; {Color}";
+    }
+
+    public static Car FromCsv(string csvLine)
+    {
+        var values = csvLine.Split(';');
+        return new Car
+        {
+            Owner = values[0].Trim(),
+            Model = values[1].Trim(),
+            Manufacturer = values[2].Trim(),
+            Year = int.Parse(values[3].Trim()),
+            Color = values[4].Trim()
+        };
+    }
+
+    public string ToCsv()
+    {
+        return $"{Owner}; {Model}; {Manufacturer}; {Year}; {Color}";
+    }
 }
 
-public class CarDatabase
+class CarDatabase
 {
-    public List<Car> Cars { get; set;}
+    private List<Car> cars = new List<Car>();
+    private string filePath;
 
-    public CarDatabase()
+    public CarDatabase(string filePath)
     {
-        Cars = new List<Car>();
+        this.filePath = filePath;
+        LoadData();
     }
 
-    public void SaveToFile(string filePath)
+    private void LoadData()
     {
-        var doc = new XDocument();
-        using (var writer = doc.CreateWriter())
+        if (File.Exists(filePath))
         {
-            var serializer = new XmlSerializer(typeof(CarDatabase));
-            serializer.Serialize(writer, this);
+            var lines = File.ReadAllLines(filePath);
+            cars = lines.Select(Car.FromCsv).ToList();
         }
-        doc.Save(filePath);
     }
 
-    public static CarDatabase LoadFromFile(string filePath)
+    private void SaveData()
     {
-        var serializer = new XmlSerializer(typeof(CarDatabase));
-        using (var fs = new FileStream(filePath, FileMode.Open))
+        var lines = cars.Select(car => car.ToCsv()).ToArray();
+        File.WriteAllLines(filePath, lines);
+    }
+
+    public void DisplayDatabase()
+    {
+        foreach (var car in cars)
         {
-            return (CarDatabase)serializer.Deserialize(fs);
+            Console.WriteLine(car);
+        }
+    }
+
+    public void SearchByOwner(string owner)
+    {
+        var car = cars.FirstOrDefault(c => c.Owner.Equals(owner, StringComparison.OrdinalIgnoreCase));
+        Console.WriteLine(car != null ? car.ToString() : "Owner not found.");
+    }
+
+    public void FilterByColor(string color)
+    {
+        var filteredCars = cars.Where(c => c.Color.Equals(color, StringComparison.OrdinalIgnoreCase));
+        foreach (var car in filteredCars)
+        {
+            Console.WriteLine(car);
+        }
+    }
+
+    public void FilterByManufacturer(string manufacturer)
+    {
+        var filteredCars = cars.Where(c => c.Manufacturer.Equals(manufacturer, StringComparison.OrdinalIgnoreCase));
+        foreach (var car in filteredCars)
+        {
+            Console.WriteLine(car);
+        }
+    }
+
+    public void FilterByAge(int maxAge)
+    {
+        int currentYear = DateTime.Now.Year;
+        var filteredCars = cars.Where(c => currentYear - c.Year <= maxAge);
+        foreach (var car in filteredCars)
+        {
+            Console.WriteLine(car);
+        }
+    }
+
+    public void CalculateStatistics()
+    {
+        if (cars.Count == 0)
+        {
+            Console.WriteLine("No cars in database.");
+            return;
+        }
+
+        var favoriteModel = cars.GroupBy(c => c.Model).OrderByDescending(g => g.Count()).First().Key;
+        var averageAge = cars.Average(c => DateTime.Now.Year - c.Year);
+        var favoriteColor = cars.GroupBy(c => c.Color).OrderByDescending(g => g.Count()).First().Key;
+
+        Console.WriteLine($"Most favorite model: {favoriteModel}");
+        Console.WriteLine($"Average age: {averageAge:F1} years");
+        Console.WriteLine($"Most favorite color: {favoriteColor}");
+    }
+
+    public void AddCar(Car car)
+    {
+        cars.Add(car);
+        SaveData();
+    }
+
+    public void DeleteCar(string owner)
+    {
+        var car = cars.FirstOrDefault(c => c.Owner.Equals(owner, StringComparison.OrdinalIgnoreCase));
+        if (car != null)
+        {
+            cars.Remove(car);
+            SaveData();
+        }
+        else
+        {
+            Console.WriteLine("Owner not found.");
         }
     }
 }
@@ -48,22 +145,81 @@ class Program
 {
     static void Main()
     {
-        string filePath = @"C:\Users\Hostilian\OneDrive\Documents\GitHub\SimpleCarShorter\data xlsx";
-        CarDatabase carDatabase;
+        Console.WriteLine("Enter the file path:");
+        var filePath = Console.ReadLine();
+        var db = new CarDatabase(filePath);
 
-        if (File.Exists(filePath))
+        while (true)
         {
-            carDatabase = CarDatabase.LoadFromFile(filePath);
-        }
-        else
-        {
-            carDatabase = new CarDatabase();
-        }
+            Console.WriteLine("Choose an option:");
+            Console.WriteLine("1. Display the whole database");
+            Console.WriteLine("2. Search for a person");
+            Console.WriteLine("3. Filter cars by parameters");
+            Console.WriteLine("4. Filter cars by age");
+            Console.WriteLine("5. Calculate statistics");
+            Console.WriteLine("6. Add a car");
+            Console.WriteLine("7. Delete a car");
+            Console.WriteLine("0. Exit");
 
-        // Implement the menu and user interactions here
-        // You can add options to display data, search, filter, calculate statistics, add/delete cars, etc.
+            var choice = Console.ReadLine();
 
-        // After any changes, save the database back to the file
-        carDatabase.SaveToFile(filePath);
+            switch (choice)
+            {
+                case "1":
+                    db.DisplayDatabase();
+                    break;
+                case "2":
+                    Console.WriteLine("Enter owner name:");
+                    var owner = Console.ReadLine();
+                    db.SearchByOwner(owner);
+                    break;
+                case "3":
+                    Console.WriteLine("Filter by:");
+                    Console.WriteLine("1. Color");
+                    Console.WriteLine("2. Manufacturer");
+                    var filterChoice = Console.ReadLine();
+                    if (filterChoice == "1")
+                    {
+                        Console.WriteLine("Enter color:");
+                        var color = Console.ReadLine();
+                        db.FilterByColor(color);
+                    }
+                    else if (filterChoice == "2")
+                    {
+                        Console.WriteLine("Enter manufacturer:");
+                        var manufacturer = Console.ReadLine();
+                        db.FilterByManufacturer(manufacturer);
+                    }
+                    break;
+                case "4":
+                    Console.WriteLine("Enter maximum age of cars:");
+                    var maxAge = int.Parse(Console.ReadLine());
+                    db.FilterByAge(maxAge);
+                    break;
+                case "5":
+                    db.CalculateStatistics();
+                    break;
+                case "6":
+                    Console.WriteLine("Enter car details (Owner; Model; Manufacturer; Year; Color):");
+                    var carDetails = Console.ReadLine().Split(';');
+                    var newCar = new Car
+                    {
+                        Owner = carDetails[0].Trim(),
+                        Model = carDetails[1].Trim(),
+                        Manufacturer = carDetails[2].Trim(),
+                        Year = int.Parse(carDetails[3].Trim()),
+                        Color = carDetails[4].Trim()
+                    };
+                    db.AddCar(newCar);
+                    break;
+                case "7":
+                    Console.WriteLine("Enter owner name:");
+                    var ownerToDelete = Console.ReadLine();
+                    db.DeleteCar(ownerToDelete);
+                    break;
+                case "0":
+                    return;
+            }
+        }
     }
 }
