@@ -12,81 +12,53 @@ class Car
     public string Color { get; set; }
 }
 
-class Program
+public class CarDatabase
 {
-    static string filePath = @"C:\Users\Hostilian\OneDrive\Documents\GitHub\SimpleCarShorter\data.csv\all-vehicles-model.csv";
-    static List<Car> cars = new List<Car>();
+    public List<Car> Cars { get; set;}
 
-    static void Main()
+    public CarDatabase()
     {
-        LoadData();
-        while (true)
-        {
-            Console.WriteLine("1. Display All Cars\n2. Filter by Age\n3. Filter by Color\n4. Exit");
-            switch (Console.ReadLine())
-            {
-                case "1": DisplayAllCars(); break;
-                case "2": FilterByAge(); break;
-                case "3": FilterByColor(); break;
-                case "4": return;
-                default: Console.WriteLine("Invalid option."); break;
-            }
-        }
+        Cars = new List<Car>();
     }
 
-    static void LoadData()
+    public void SaveToFile(string filePath)
     {
-        try
+        var doc = new XDocument();
+        using (var writer = doc.CreateWriter())
         {
-            var lines = File.ReadAllLines(filePath).Skip(1);
-            foreach (var line in lines)
-            {
-                var data = line.Split(';');
-                cars.Add(new Car
-                {
-                    Make = data[0],
-                    Model = data[1],
-                    Year = int.Parse(data[63]), // Assuming Year is at index 63
-                    Color = data[4]
-                });
-            }
+            var serializer = new XmlSerializer(typeof(CarDatabase));
+            serializer.Serialize(writer, this);
         }
-        catch (Exception ex)
+        doc.Save(filePath);
+    }
+
+    public static CarDatabase LoadFromFile(string filePath)
+    {
+        var serializer = new XmlSerializer(typeof(CarDatabase));
+        using (var fs = new FileStream(filePath, FileMode.Open))
         {
-            Console.WriteLine($"Error loading data: {ex.Message}");
+            return (CarDatabase)serializer.Deserialize(fs);
         }
     }
 
     static void DisplayAllCars()
     {
-        foreach (var car in cars)
-        {
-            Console.WriteLine($"{car.Make} {car.Model} {car.Year} {car.Color}");
-        }
-    }
+        string filePath = @"C:\Users\Hostilian\OneDrive\Documents\GitHub\SimpleCarShorter\data xlsx";
+        CarDatabase carDatabase;
 
-    static void FilterByAge()
-    {
-        Console.Write("Enter maximum age of cars: ");
-        if (int.TryParse(Console.ReadLine(), out int maxAge))
+        if (File.Exists(filePath))
         {
-            var currentYear = DateTime.Now.Year;
-            var filteredCars = cars.Where(car => currentYear - car.Year <= maxAge);
-            foreach (var car in filteredCars)
-            {
-                Console.WriteLine($"{car.Make} {car.Model} {car.Year} {car.Color}");
-            }
+            carDatabase = CarDatabase.LoadFromFile(filePath);
         }
-    }
+        else
+        {
+            carDatabase = new CarDatabase();
+        }
 
-    static void FilterByColor()
-    {
-        Console.Write("Enter color: ");
-        var color = Console.ReadLine().ToLower();
-        var filteredCars = cars.Where(car => car.Color.ToLower() == color);
-        foreach (var car in filteredCars)
-        {
-            Console.WriteLine($"{car.Make} {car.Model} {car.Year} {car.Color}");
-        }
+        // Implement the menu and user interactions here
+        // You can add options to display data, search, filter, calculate statistics, add/delete cars, etc.
+
+        // After any changes, save the database back to the file
+        carDatabase.SaveToFile(filePath);
     }
 }
