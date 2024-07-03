@@ -1,0 +1,91 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "main2PP/1.0.0": {
+        "dependencies": {
+          "cscs": "4.8.16.0"
+        },
+        "runtime": {
+          "main2PP.dll": {}
+        }
+      },
+      "cscs/4.8.16.0": {
+        "runtime": {
+          "cscs.dll": {
+            "assemblyVersion": "4.8.16.0",
+            "fileVersion": "4.8.16.0"
+          }
+        }
+      },
+      "Microsoft.CodeAnalysis/4.9.0.0": {
+        "runtime": {
+          "Microsoft.CodeAnalysis.dll": {
+            "assemblyVersion": "4.9.0.0",
+            "fileVersion": "4.900.224.12906"
+          }
+        }
+      },
+      "Microsoft.CodeAnalysis.CSharp/4.9.0.0": {
+        "runtime": {
+          "Microsoft.CodeAnalysis.CSharp.dll": {
+            "assemblyVersion": "4.9.0.0",
+            "fileVersion": "4.900.224.12906"
+          }
+        }
+      },
+      "Microsoft.CodeAnalysis.Scripting/4.9.0.0": {
+        "runtime": {
+          "Microsoft.CodeAnalysis.Scripting.dll": {
+            "assemblyVersion": "4.9.0.0",
+            "fileVersion": "4.900.224.12906"
+          }
+        }
+      },
+      "Microsoft.CodeAnalysis.CSharp.Scripting/4.9.0.0": {
+        "runtime": {
+          "Microsoft.CodeAnalysis.CSharp.Scripting.dll": {
+            "assemblyVersion": "4.9.0.0",
+            "fileVersion": "4.900.224.12906"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "main2PP/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "cscs/4.8.16.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.CodeAnalysis/4.9.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.CodeAnalysis.CSharp/4.9.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.CodeAnalysis.Scripting/4.9.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.CodeAnalysis.CSharp.Scripting/4.9.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

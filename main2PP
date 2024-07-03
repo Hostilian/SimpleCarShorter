@@ -1,0 +1,244 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+namespace CarDatabase
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string filePath = @"C:\Users\Hostilian\OneDrive\Documents\GitHub\SimpleCarShorter\data.txt";
+
+            List<Car> cars = LoadCarsFromFile(filePath);
+
+            if (cars == null)
+            {
+                Console.WriteLine("Error loading car data from file.");
+                return;
+            }
+
+            bool exit = false;
+
+            while (!exit)
+            {
+                Console.WriteLine("\nChoose an option:");
+                Console.WriteLine("1. Display all cars");
+                Console.WriteLine("2. Search by owner");
+                Console.WriteLine("3. Filter by parameters (color or manufacturer)");
+                Console.WriteLine("4. Filter by age");
+                Console.WriteLine("5. Calculate statistics");
+                Console.WriteLine("6. Exit");
+
+                Console.Write("Enter your choice: ");
+                string input = Console.ReadLine();
+
+                switch (input)
+                {
+                    case "1":
+                        DisplayAllCars(cars);
+                        break;
+                    case "2":
+                        SearchByOwner(cars);
+                        break;
+                    case "3":
+                        FilterByParameters(cars);
+                        break;
+                    case "4":
+                        FilterByAge(cars);
+                        break;
+                    case "5":
+                        CalculateStatistics(cars);
+                        break;
+                    case "6":
+                        exit = true;
+                        break;
+                    default:
+                        Console.WriteLine("Invalid option. Please try again.");
+                        break;
+                }
+            }
+        }
+
+        static List<Car> LoadCarsFromFile(string filePath)
+        {
+            List<Car> cars = new List<Car>();
+
+            try
+            {
+                string[] lines = File.ReadAllLines(filePath);
+
+                foreach (string line in lines.Skip(1)) // Skip header line
+                {
+                    string[] parts = line.Split(';');
+
+                    if (parts.Length >= 5)
+                    {
+                        string owner = parts[0].Trim();
+                        string model = parts[1].Trim();
+                        string manufacturer = parts[2].Trim();
+                        int year = int.Parse(parts[3].Trim());
+                        string color = parts[4].Trim();
+
+                        Car car = new Car(owner, model, manufacturer, year, color);
+                        cars.Add(car);
+                    }
+                }
+
+                return cars;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading data from file: {ex.Message}");
+                return null;
+            }
+        }
+
+        static void DisplayAllCars(List<Car> cars)
+        {
+            Console.WriteLine("\nList of all cars:");
+            foreach (Car car in cars)
+            {
+                Console.WriteLine(car);
+            }
+        }
+
+        static void SearchByOwner(List<Car> cars)
+        {
+            Console.Write("Enter the owner's name: ");
+            string owner = Console.ReadLine();
+
+            var matchingCars = cars.Where(c => c.Owner.ToLower().Contains(owner.ToLower())).ToList();
+
+            if (matchingCars.Any())
+            {
+                Console.WriteLine($"\nCars owned by {owner}:");
+                foreach (var car in matchingCars)
+                {
+                    Console.WriteLine(car);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"No cars found for owner '{owner}'.");
+            }
+        }
+
+        static void FilterByParameters(List<Car> cars)
+        {
+            Console.Write("Enter the parameter (color or manufacturer): ");
+            string parameter = Console.ReadLine().Trim().ToLower();
+
+            Console.Write($"Enter the {parameter}: ");
+            string value = Console.ReadLine().Trim().ToLower();
+
+            var filteredCars = parameter switch
+            {
+                "color" => cars.Where(c => c.Color.ToLower() == value).ToList(),
+                "manufacturer" => cars.Where(c => c.Manufacturer.ToLower() == value).ToList(),
+                _ => new List<Car>()
+            };
+
+            if (filteredCars.Any())
+            {
+                Console.WriteLine($"\nCars filtered by {parameter} '{value}':");
+                foreach (var car in filteredCars)
+                {
+                    Console.WriteLine(car);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"No cars found with {parameter} '{value}'.");
+            }
+        }
+
+        static void FilterByAge(List<Car> cars)
+        {
+            Console.Write("Enter the maximum age of cars you want to see (in years): ");
+            if (int.TryParse(Console.ReadLine(), out int maxAge))
+            {
+                var filteredCars = cars.Where(c => DateTime.Now.Year - c.Year <= maxAge).ToList();
+
+                if (filteredCars.Any())
+                {
+                    Console.WriteLine($"\nCars {maxAge} years old or newer:");
+                    foreach (var car in filteredCars)
+                    {
+                        Console.WriteLine(car);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"No cars found that are {maxAge} years old or newer.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid input. Please enter a valid number.");
+            }
+        }
+
+        static void CalculateStatistics(List<Car> cars)
+        {
+            if (cars.Count == 0)
+            {
+                Console.WriteLine("No cars in the database.");
+                return;
+            }
+
+            double averageAge = cars.Average(c => DateTime.Now.Year - c.Year);
+            Console.WriteLine($"\nAverage age of cars in the database: {averageAge:F2} years");
+
+            var groupedByModel = cars.GroupBy(c => c.Model)
+                                    .OrderByDescending(g => g.Count())
+                                    .FirstOrDefault();
+
+            if (groupedByModel != null)
+            {
+                Console.WriteLine($"Most popular model: {groupedByModel.Key} with {groupedByModel.Count()} cars");
+            }
+            else
+            {
+                Console.WriteLine("No cars in the database.");
+            }
+
+            var groupedByColor = cars.GroupBy(c => c.Color)
+                                    .OrderByDescending(g => g.Count())
+                                    .FirstOrDefault();
+
+            if (groupedByColor != null)
+            {
+                Console.WriteLine($"Most popular color: {groupedByColor.Key} with {groupedByColor.Count()} cars");
+            }
+            else
+            {
+                Console.WriteLine("No cars in the database.");
+            }
+        }
+    }
+
+    class Car
+    {
+        public string Owner { get; }
+        public string Model { get; }
+        public string Manufacturer { get; }
+        public int Year { get; }
+        public string Color { get; }
+
+        public Car(string owner, string model, string manufacturer, int year, string color)
+        {
+            Owner = owner;
+            Model = model;
+            Manufacturer = manufacturer;
+            Year = year;
+            Color = color;
+        }
+
+        public override string ToString()
+        {
+            return $"{Owner,-20} {Model,-25} {Manufacturer,-15} {Year,-10} {Color}";
+        }
+    }
+}
